@@ -5,7 +5,8 @@ use std::{
     time::{Duration, SystemTime},
 };
 
-const NYAS: [&str; 8] = [
+const NYA_AMOUNT: usize = 8; // must be power of 2
+const NYAS: [&str; NYA_AMOUNT] = [
     "nya ",
     "nya~ ",
     "mew ",
@@ -16,12 +17,10 @@ const NYAS: [&str; 8] = [
     "mow ",
 ];
 
-fn rand(state: &mut u64, max: usize) -> usize {
-    let s = *state;
-    *state = (s << (s & 0b111))
-        .wrapping_add(s >> (s & 0b111))
-        .wrapping_add(0xcc_6e_79_61_cc); // [0xcc]nya[0xcc] as hex string
-    s as usize % max
+fn rand<const MAX: usize>(state: &mut u64) -> usize {
+    let x = *state;
+    *state = (x >> 8) + (x << 8);
+    x as usize & (MAX - 1)
 }
 
 fn rand_merge(state: &mut u64, other: u64) {
@@ -51,10 +50,11 @@ fn main() {
     while gen < arg {
         let mut n = 0;
         while gen < arg && n < 16370 {
-            let i = rand(&mut state, NYAS.len());
+            let i = rand::<NYA_AMOUNT>(&mut state);
             let nya = NYAS[i];
-            buf[n..n + nya.len()].copy_from_slice(nya.as_bytes());
-            n += nya.len();
+            let nyalen = nya.len();
+            buf[n..n + nyalen].copy_from_slice(nya.as_bytes());
+            n += nyalen;
             gen += 1;
         }
         stdout.write_all(&buf[..n]).unwrap();
