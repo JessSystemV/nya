@@ -1,8 +1,6 @@
 use std::{
     env::args,
-    ffi::c_int,
     io::{stdout, Write},
-    os::fd::AsFd,
     thread,
     time::{Duration, SystemTime},
 };
@@ -22,15 +20,13 @@ fn rand(state: &mut u64, max: usize) -> usize {
     let s = *state;
     *state = (s << (s & 0b111))
         .wrapping_add(s >> (s & 0b111))
-        .wrapping_add(0x6d_65_6f_77_6d_72_72_70); // meowmrrp as hex str
+        .wrapping_add(0xcc_6e_79_61_cc); // [0xcc]nya[0xcc] as hex string
     s as usize % max
 }
 
 fn rand_merge(state: &mut u64, other: u64) {
     let s = *state;
-    *state = (s << (s & 0b111))
-        .wrapping_add(s >> (s & 0b111))
-        .wrapping_add(other);
+    *state = (s << (s & 0b111)).wrapping_add(s >> (s & 0b111)) ^ other;
 }
 
 fn main() {
@@ -44,17 +40,17 @@ fn main() {
     for _ in 0..100 {
         rand_merge(
             &mut state,
-            SystemTime::UNIX_EPOCH.elapsed().unwrap().as_millis() as u64,
+            SystemTime::UNIX_EPOCH.elapsed().unwrap().as_nanos() as u64,
         );
-        thread::sleep(Duration::from_millis(1));
+        thread::sleep(Duration::from_micros(1));
     }
     println!("Random state: {state:016x}");
     let mut stdout = stdout().lock();
     let mut gen = 0;
-    let mut buf = [0; 1024];
+    let mut buf = [0; 16384];
     while gen < arg {
         let mut n = 0;
-        while gen < arg && n < 1000 {
+        while gen < arg && n < 16370 {
             let i = rand(&mut state, NYAS.len());
             let nya = NYAS[i];
             buf[n..n + nya.len()].copy_from_slice(nya.as_bytes());
