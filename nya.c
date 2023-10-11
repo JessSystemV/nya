@@ -1,25 +1,23 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/types.h>
 #include <time.h>
 #include <string.h>
 
-const char* list[] = {"nya", "nya~", "mew", "meow", "mrrp", ":3", "meowmeow", "mow"};
-const size_t list_lens[] = {3, 4, 3, 4, 4, 2, 8, 3};
-int list_size = sizeof(list) / sizeof(char*);
+const char* NYAS[] = {"nya ", "nya~ ", "mew ", "meow ", "mrrp ", ":3 ", "meowmeow ", "mow "};
+const size_t NYALENS[] = {4, 5, 4, 5, 5, 3, 9, 4};
+const size_t MAX = sizeof(NYAS) / sizeof(char*);
 
-char* get_string(int length) {
-    char* str = malloc(length * 20 * sizeof(char)); // allocate memory for the string
-    int len = 0;
-    int i;
-    srand(time(NULL)); // seed the random number generator
-    for (i = 0; i < length; i++) {
-        int index = rand() % list_size; // get a random index
-        size_t next_char_size = list_lens[index]; // get the length of the gotten string
-        strcat(&str[len], list[index]); // concatenate the selected string from the list
-        strcat(&str[len], " "); // add a space between words
-        len += next_char_size + 1;
-    }
-    return str;
+size_t rnd(u_int64_t* state) {
+    u_int64_t s = *state;
+    *state = (s >> 8) + (s << 8);
+    return s & (MAX - 1);
+}
+
+void rand_merge(u_int64_t* state, u_int64_t other) {
+    u_int64_t s = *state;
+    s = (s << (s & 0b111)) + (s >> (s & 0b111)) ^ other;
+    *state = (s >> 8) + (s << 8);
 }
 
 int main(int argc, char* argv[]) {
@@ -27,9 +25,23 @@ int main(int argc, char* argv[]) {
         printf("Usage: %s <length>\n", argv[0]);
         return 1;
     }
-    int length = atoi(argv[1]);
-    char* str = get_string(length);
-    printf("%s\n", str);
-    free(str); // free the dynamically allocated memory
+    unsigned long arg = atol(argv[1]);
+    u_int64_t state = arg;
+    for(int i = 0; i < 100; i++) {
+        rand_merge(&state, time(NULL));
+    }
+    char buf[16384];
+    while(arg > 0) {
+        u_int16_t n = 0;
+        while(arg > 0 && n < 16370) {
+            size_t i = rnd(&state);
+            const char* nya = NYAS[i];
+            size_t nyalen = NYALENS[i];
+            memcpy(buf + n, nya, nyalen);
+            n += nyalen;
+            arg -= 1;
+        }
+        fwrite(buf, 1, n, stdout);
+    }
     return 0;
 }

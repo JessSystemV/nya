@@ -18,9 +18,9 @@ const NYAS: [&str; NYA_AMOUNT] = [
 ];
 
 fn rand<const MAX: usize>(state: &mut u64) -> usize {
-    let x = *state;
-    *state = (x >> 8) + (x << 8);
-    x as usize & (MAX - 1)
+    let s = *state;
+    *state = (s >> 8) + (s << 8);
+    s as usize & (MAX - 1)
 }
 
 fn rand_merge(state: &mut u64, other: u64) {
