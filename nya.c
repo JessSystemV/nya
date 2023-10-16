@@ -26,7 +26,7 @@ int main(int argc, char* argv[]) {
         printf("Usage: %s <length>\n", argv[0]);
         return 1;
     }
-    unsigned long arg = atol(argv[1]);
+    u_int64_t arg = atoll(argv[1]);
     u_int64_t state = arg;
     for(int i = 0; i < 100; i++) {
         rand_merge(&state, time(NULL));
