@@ -1,5 +1,5 @@
-nya:
-	cc nya.c -O3 -o nya
+nya: nya.c
+	cc nya.c -std=c17 -O3 -o nya
 clean:
 	rm -f nya
 install:
