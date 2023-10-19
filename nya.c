@@ -55,6 +55,6 @@ int main(int argc, char* argv[]) {
 
     fwrite("\r\n", 1, 2, stdout);
 
-    (void)state;
+    free(nyas);
     return 0;
 }
